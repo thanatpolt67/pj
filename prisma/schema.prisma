@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  name      String
+  role      String     @default("CUSTOMER")
+  orders    Order[]
+  cartItems CartItem[]
+  createdAt DateTime   @default(now())
+}
+
+model Product {
+  id         Int         @id @default(autoincrement())
+  name       String
+  price      Int
+  stock      Int
+  color      String      @default("ไม่ระบุสี")
+  size       String      @default("Free Size")
+  imageUrl   String?
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int     @default(1)
+
+  @@unique([userId, productId])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id])
+  phone     String      @default("")
+  address   String      @default("")
+  total     Int
+  status    String      @default("สำเร็จ")
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+}
